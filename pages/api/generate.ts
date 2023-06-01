@@ -38,6 +38,7 @@ const handler = async (req: Request) => {
       })
     } else {
       if (!res.ok) {
+        console.log("res", res);
         throw new Error(`HTTP error! status: ${res.status}`);
       }
       const encoder = new TextEncoder();
