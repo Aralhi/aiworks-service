@@ -7,16 +7,13 @@ import {
 if (!process.env.OPENAI_API_KEY) {
   throw new Error("Missing env var from OpenAI");
 }
-console.log('.....process.env.OPENAI_API_KEY', process.env.OPENAI_API_KEY);
 export const config = {
   runtime: "edge",
 };
 
 const handler = async (req: Request) => {
-  console.log("get in");
   try {
     const { payload } = (await req.json())
-    console.log("payload", payload);
     if (!payload?.messages || !payload?.messages?.length) {
       return new Response("No prompt in the request", { status: 400 });
     }
@@ -38,8 +35,8 @@ const handler = async (req: Request) => {
       })
     } else {
       if (!res.ok) {
-        console.log("res", await res.json());
-        throw new Error(`HTTP error! status: ${res.status}`);
+        const message = await res.json()
+        throw new Error(`HTTP error! status: ${res.status}, ${message}`);
       }
       const encoder = new TextEncoder();
       const decoder = new TextDecoder();
@@ -57,7 +54,6 @@ const handler = async (req: Request) => {
               try {
                 const json = JSON.parse(data);
                 const text = json.choices[0].delta?.content || "";
-                console.log("text", text);
                 const queue = encoder.encode(text);
                 controller.enqueue(queue);
               } catch (e) {
