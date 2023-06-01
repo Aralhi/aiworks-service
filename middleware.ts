@@ -4,6 +4,7 @@ import { auth } from './lib/crypto';
  
 // This function can be marked `async` if using `await` inside
 export async function middleware(request: NextRequest) {
+  return NextResponse.next()
   if (request.method === 'OPTIONS') {
     return new NextResponse(null, {
       status: 200

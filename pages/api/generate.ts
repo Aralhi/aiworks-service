@@ -7,7 +7,7 @@ import {
 if (!process.env.OPENAI_API_KEY) {
   throw new Error("Missing env var from OpenAI");
 }
-
+console.log('.....process.env.OPENAI_API_KEY', process.env.OPENAI_API_KEY);
 export const config = {
   runtime: "edge",
 };
@@ -30,9 +30,6 @@ const handler = async (req: Request) => {
       body: JSON.stringify(payload),
     });
     if(!isStream) {
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
       const result = await res.json()
       return new Response(JSON.stringify(result), {
         headers: {
@@ -40,6 +37,9 @@ const handler = async (req: Request) => {
         },
       })
     } else {
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
       const encoder = new TextEncoder();
       const decoder = new TextDecoder();
       const stream = new ReadableStream({
