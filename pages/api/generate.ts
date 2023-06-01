@@ -13,13 +13,14 @@ export const config = {
 };
 
 const handler = async (req: Request) => {
-  const { payload } = (await req.json())
-  console.log("payload", payload);
-  if (!payload?.messages || !payload?.messages?.length) {
-    return new Response("No prompt in the request", { status: 400 });
-  }
-  const { stream: isStream } = payload;
+  console.log("get in");
   try {
+    const { payload } = (await req.json())
+    console.log("payload", payload);
+    if (!payload?.messages || !payload?.messages?.length) {
+      return new Response("No prompt in the request", { status: 400 });
+    }
+    const { stream: isStream } = payload;
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
       headers: {
         "Content-Type": "application/json",
@@ -77,6 +78,7 @@ const handler = async (req: Request) => {
       return new Response(stream);
     }
   } catch (e: any) {
+    console.log("error", e);
     return new Response(e.message, { status: 500 });
   }
 };
