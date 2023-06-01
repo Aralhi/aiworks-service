@@ -3,8 +3,7 @@ import OSS from 'ali-oss';
 import { Duplex } from 'stream';
 import urllib from 'urllib';
 
-/** 图片过期时间1年 */
-const EXPIRES_TIME = 31536000;
+const EXPIRES_TIME = 3600;
 const client = new OSS({
   endpoint: process.env.OSS_ENDPOINT,
   bucket: process.env.OSS_BUCKET,
@@ -35,15 +34,19 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
     console.timeEnd('请求图片资源');
 
-    console.log('Content-Length', response.headers['content-length']);
-    console.log('Content-Type', response.headers['content-type']);
+    const { headers } = response;
+
+    console.log('Content-Length', headers['content-length']);
+    console.log('Content-Type', headers['content-type']);
+
+    const ext = headers['content-type']?.split('/')[1];
 
     console.time('流写入');
     stream.push(response.data);
     stream.push(null);
     console.timeEnd('流写入');
 
-    const fileName = `${req.headers['x-salai-plaintext']}-${Date.now()}`;
+    const fileName = `${req.headers['x-salai-plaintext']}/${Date.now()}.${ext}`;
 
     console.time('oss上传');
     const ossRes = await client.putStream(fileName, stream);
