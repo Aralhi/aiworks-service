@@ -1,5 +1,5 @@
-import { Midjourney } from "midjourney";
-import { ResponseError } from "../../../lib/MJ";
+import { Midjourney } from 'midjourney';
+import { ResponseError } from '../../../lib/MJ';
 
 const client = new Midjourney({
   ServerId: <string>process.env.SERVER_ID,
@@ -10,32 +10,46 @@ const client = new Midjourney({
 });
 
 export const config = {
-  runtime: "edge",
+  runtime: 'edge',
 };
 
 const handler = async (req: Request) => {
-  const { prompt } = (await req.json())
-  console.log("imagine.handler", prompt);
-  const encoder = new TextEncoder();
-  const readable = new ReadableStream({
-    start(controller) {
-      console.log("imagine.start", prompt);
-      client
-        .Imagine(prompt, (uri: string, progress: string) => {
-          console.log("imagine.loading", uri);
-          controller.enqueue(encoder.encode(JSON.stringify({ uri, progress })));
-        })
-        .then((msg) => {
-          console.log("imagine.done", msg);
-          controller.enqueue(encoder.encode(JSON.stringify(msg)));
-          controller.close();
-        })
-        .catch((err: ResponseError) => {
-          console.log("imagine.error", err);
-          controller.close();
-        });
-    },
-  });
-  return new Response(readable, {});
+  const { prompt, isStream = true } = await req.json();
+  console.log('imagine.handler', prompt);
+  if (!isStream) {
+    try {
+      const res = await client.Imagine(prompt);
+      return new Response(JSON.stringify(res), {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    } catch (e) {
+      console.error('imagine.error', e);
+      return new Response(JSON.stringify({ status: 'failed', message: (e as Error)?.message }), { status: 500 });
+    }
+  } else {
+    const encoder = new TextEncoder();
+    const readable = new ReadableStream({
+      start(controller) {
+        console.log('imagine.start', prompt);
+        client
+          .Imagine(prompt, (uri: string, progress: string, ...args) => {
+            console.log('imagine.loading', uri, progress, ...args);
+            controller.enqueue(encoder.encode(JSON.stringify({ uri, progress })));
+          })
+          .then((msg) => {
+            console.log('imagine.done', msg);
+            controller.enqueue(encoder.encode(JSON.stringify(msg)));
+            controller.close();
+          })
+          .catch((err: ResponseError) => {
+            console.log('imagine.error', err);
+            controller.close();
+          });
+      },
+    });
+    return new Response(readable, {});
+  }
 };
 export default handler;
