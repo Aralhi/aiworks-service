@@ -28,7 +28,7 @@ function request(openAIkeys: string[], payload: any, callback: (res?: Response) 
     },
     () => {
       request(openAIkeys, payload, callback, retry);
-    },
+    }
   );
 }
 
@@ -67,7 +67,9 @@ const handler = async (req: Request) => {
   if (!res) {
     return new Response(JSON.stringify({ status: 'failed', message: '请求失败' }), {
       status: 500,
-      headers: [['Content-Type', req.headers.get('Content-Type') as string]],
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
   }
   if (!isStream) {

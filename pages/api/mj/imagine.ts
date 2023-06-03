@@ -26,7 +26,12 @@ const handler = async (req: Request) => {
       });
     } catch (e) {
       console.error('imagine.error', e);
-      return new Response(JSON.stringify({ status: 'failed', message: (e as Error)?.message }), { status: 500 });
+      return new Response(JSON.stringify({ status: 'failed', message: (e as Error)?.message }), {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
     }
   } else {
     const encoder = new TextEncoder();
