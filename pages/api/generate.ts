@@ -18,9 +18,6 @@ function request(openAIkeys: string[], payload: any, callback: (res?: Response) 
 
   const randomIndex = Math.floor(Math.random() * openAIkeys.length);
   const openAIKey = openAIkeys[randomIndex];
-
-  console.log('请求key', openAIKey);
-
   openAIkeys.splice(randomIndex, 1);
 
   fetchOpenAI(
@@ -67,7 +64,6 @@ const handler = async (req: Request) => {
   const { stream: isStream } = payload;
   const openAIKeys = [...OpenAIKeys];
   const res = await promise(openAIKeys, payload);
-  console.log('响应结果', res);
   if (!res) {
     return new Response(JSON.stringify({ status: 'failed', message: '请求失败' }), {
       status: 500,
@@ -102,7 +98,6 @@ const handler = async (req: Request) => {
             try {
               const json = JSON.parse(data);
               const text = json.choices[0].delta?.content || '';
-              console.log('text', text);
               const queue = encoder.encode(text);
               controller.enqueue(queue);
             } catch (e) {
