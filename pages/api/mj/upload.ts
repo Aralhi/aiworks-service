@@ -59,7 +59,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     });
     console.timeEnd('oss上传');
 
-    res.status(200).send({ status: 'ok', data: { url: ossUrl } });
+    res.status(200).send({ status: 'ok', data: { url: ossUrl, originUrl: ossRes.name } });
   } catch (e) {
     console.error('图片上传失败', e);
     res.status(500).send({ status: 'failed' });
