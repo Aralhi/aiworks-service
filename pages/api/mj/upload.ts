@@ -23,16 +23,19 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const { url } = req.body;
     if (!url) {
       res.status(400).send({ status: 'failed', message: '图片不能为空' });
+      return;
     }
     const stream = new Duplex();
     console.time('请求图片资源');
-    const response = await urllib.request(url, { timeout: 600000 });
+    const response = await urllib.request(url, { timeout: 600000 }).catch((e) => e);
     console.timeEnd('请求图片资源');
 
-    if (response.status >= 400) {
-      res.status(500).send({ status: 'failed' });
-    }
     const { headers } = response;
+
+    if (response instanceof Error || response.status >= 400 || headers['content-length'] <= 0) {
+      res.status(500).send({ status: 'failed' });
+      return;
+    }
 
     console.log('Content-Length', headers['content-length']);
     console.log('Content-Type', headers['content-type']);
@@ -48,7 +51,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     console.time('oss上传');
     const ossRes = await client.putStream(fileName, stream);
-    const ossUrl = await client.signatureUrl(ossRes.name, { expires: EXPIRES_TIME });
+    const ossUrl = await client.signatureUrl(ossRes.name, { expires: EXPIRES_TIME, 'Content-Type': headers['content-type'] });
     console.timeEnd('oss上传');
 
     res.status(200).send({ status: 'ok', data: { url: ossUrl } });
