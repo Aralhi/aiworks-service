@@ -58,6 +58,7 @@ function promise(openAIKeys: string[], payload: any) {
 
 const handler = async (req: Request) => {
   const { payload } = await req.json();
+  console.log('....payload', payload)
   if (!payload?.messages || !payload?.messages?.length) {
     return new Response('No prompt in the request', { status: 400 });
   }
@@ -74,6 +75,7 @@ const handler = async (req: Request) => {
   }
   if (!isStream) {
     const result = await res.json();
+    console.log('...chat completion', result)
     return new Response(JSON.stringify(result), {
       headers: {
         'Content-Type': 'application/json',
