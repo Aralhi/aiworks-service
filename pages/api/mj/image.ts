@@ -27,13 +27,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const stream = new Duplex();
     console.time('请求图片资源');
     const response = await urllib.request(url, { timeout: 600000 });
-
     console.log(response);
+    console.timeEnd('请求图片资源');
+
     if (response.status >= 400) {
       res.status(500).send({ status: 'failed' });
     }
-    console.timeEnd('请求图片资源');
-
     const { headers } = response;
 
     console.log('Content-Length', headers['content-length']);
