@@ -51,7 +51,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     console.time('oss上传');
     const ossRes = await client.putStream(fileName, stream);
-    const ossUrl = await client.signatureUrl(ossRes.name, { expires: EXPIRES_TIME, method: 'GET', 'Content-Type': headers['content-type'] });
+    const ossUrl = await client.signatureUrl(ossRes.name, {
+      expires: EXPIRES_TIME,
+      response: {
+        'content-type': headers['content-type'],
+      },
+    });
     console.timeEnd('oss上传');
 
     res.status(200).send({ status: 'ok', data: { url: ossUrl } });
