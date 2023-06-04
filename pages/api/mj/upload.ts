@@ -3,7 +3,8 @@ import OSS from 'ali-oss';
 import { Duplex } from 'stream';
 import urllib from 'urllib';
 
-const EXPIRES_TIME = 3600;
+/** 过期时间1年 */
+const EXPIRES_TIME = 31536000;
 const client = new OSS({
   endpoint: process.env.OSS_ENDPOINT,
   bucket: process.env.OSS_BUCKET,
