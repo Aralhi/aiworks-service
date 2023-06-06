@@ -1,5 +1,5 @@
 import { Midjourney } from 'midjourney';
-import { ResponseError } from '../../../lib/MJ';
+import { ResponseError, completeCallback } from '../../../lib/MJ';
 
 const client = new Midjourney({
   ServerId: <string>process.env.SERVER_ID,
@@ -14,7 +14,7 @@ export const config = {
 };
 
 const handler = async (req: Request) => {
-  const { prompt, isStream = true } = await req.json();
+  const { unionId, prompt, isStream = true } = await req.json();
   console.log('imagine.handler', prompt);
   if (!isStream) {
     try {
@@ -46,6 +46,7 @@ const handler = async (req: Request) => {
           .then((msg) => {
             console.log('imagine.done', msg);
             controller.enqueue(encoder.encode(JSON.stringify(msg)));
+            completeCallback(req.headers, { ...msg, unionId });
             controller.close();
           })
           .catch((err: ResponseError) => {
