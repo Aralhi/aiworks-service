@@ -52,12 +52,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     console.time('oss上传');
     const ossRes = await client.putStream(fileName, stream);
-    const ossUrl = await client.signatureUrl(ossRes.name, {
-      expires: EXPIRES_TIME,
-      response: {
-        'content-type': headers['content-type'],
-      },
-    });
+    const ossUrl = `https://${process.env.OSS_BUCKET}.${process.env.OSS_ENDPOINT}/${ossRes.name}`;
+    // const ossUrl = await client.signatureUrl(ossRes.name, {
+    //   expires: EXPIRES_TIME,
+    //   response: {
+    //     'content-type': headers['content-type'],
+    //   },
+    // });
     console.timeEnd('oss上传');
 
     res.status(200).send({ status: 'ok', data: { url: ossUrl, originUrl: ossRes.name } });
