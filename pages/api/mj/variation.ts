@@ -14,28 +14,32 @@ export const config = {
 };
 
 export default async function handler(req: Request) {
-  const { content, index, msgId, msgHash, unionId } = await req.json();
-  console.log('variation.handler', content);
-  const encoder = new TextEncoder();
-  const readable = new ReadableStream({
-    start(controller) {
-      console.log('variation.start', content);
-      client
-        .Variation(content, index, msgId, msgHash, (uri: string, progress: string) => {
-          console.log('variation.loading', uri);
-          controller.enqueue(encoder.encode(JSON.stringify({ uri, progress })));
-        })
-        .then((msg) => {
-          console.log('variation.done', msg);
-          controller.enqueue(encoder.encode(JSON.stringify(msg)));
-          completeCallback(req.headers, { ...msg, unionId });
-          controller.close();
-        })
-        .catch((err: ResponseError) => {
-          console.log('variation.error', err);
-          controller.close();
-        });
-    },
-  });
-  return new Response(readable, {});
+  try {
+    const { content, index, msgId, msgHash, unionId } = await req.json();
+    console.log('variation.handler', content);
+    const encoder = new TextEncoder();
+    const readable = new ReadableStream({
+      start(controller) {
+        console.log('variation.start', content);
+        client
+          .Variation(content, index, msgId, msgHash, (uri: string, progress: string) => {
+            console.log('variation.loading', uri);
+            controller.enqueue(encoder.encode(JSON.stringify({ uri, progress })));
+          })
+          .then((msg) => {
+            console.log('variation.done', msg);
+            controller.enqueue(encoder.encode(JSON.stringify(msg)));
+            completeCallback(req.headers, { ...msg, unionId });
+            controller.close();
+          })
+          .catch((err: ResponseError) => {
+            console.log('variation.error', err);
+            controller.close();
+          });
+      },
+    });
+    return new Response(readable, {});
+  } catch (e) {
+    return new Response(JSON.stringify({ status: 'failed' }), { status: 500 });
+  }
 }
