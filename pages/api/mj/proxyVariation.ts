@@ -43,6 +43,7 @@ export default async function handler(req: Request) {
       credentials: 'include',
     });
     console.log(res);
+    return new Response(JSON.stringify(res));
   } catch (e) {
     return new Response(JSON.stringify({ status: 'failed' }), { status: 500 });
   }
