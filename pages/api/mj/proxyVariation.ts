@@ -5,7 +5,7 @@ export const config = {
 export default async function handler(req: Request) {
   try {
     const { content, index, msgId, msgHash, unionId } = await req.json();
-    const res = fetch('https://discord.com/api/v9/interactions', {
+    const res = await fetch('https://discord.com/api/v9/interactions', {
       headers: {
         accept: '*/*',
         'accept-language': 'zh-CN,zh;q=0.9',
