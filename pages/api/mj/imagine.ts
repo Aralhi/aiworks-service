@@ -46,9 +46,7 @@ const handler = async (req: Request) => {
           .then((res) => {
             console.log('imagine.done', res);
             controller.enqueue(encoder.encode(JSON.stringify(res)));
-            if (res) {
-              completeCallback(req.headers, { ...res, unionId });
-            }
+            res && completeCallback(req.headers, { ...res, unionId });
             controller.close();
           })
           .catch((err: ResponseError) => {
