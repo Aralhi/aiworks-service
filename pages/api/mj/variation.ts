@@ -1,5 +1,6 @@
 import { Midjourney } from 'midjourney';
 import { ResponseError, completeCallback } from '../../../lib/MJ';
+import { UAndVPayload } from './typing';
 
 const client = new Midjourney({
   ServerId: <string>process.env.SERVER_ID,
@@ -15,21 +16,28 @@ export const config = {
 
 export default async function handler(req: Request) {
   try {
-    const { content, index, msgId, msgHash, unionId } = await req.json();
+    const { content, index, msgId, msgHash, flags, unionId } = (await req.json()) as UAndVPayload;
     console.log('variation.handler', content);
     const encoder = new TextEncoder();
     const readable = new ReadableStream({
       start(controller) {
         console.log('variation.start', content);
         client
-          .Variation(content, index, msgId, msgHash, (uri: string, progress: string) => {
-            console.log('variation.loading', uri);
-            controller.enqueue(encoder.encode(JSON.stringify({ uri, progress })));
+          .Variation({
+            content,
+            index,
+            msgId,
+            flags,
+            hash: msgHash,
+            loading: (uri: string, progress: string) => {
+              console.log('variation.loading', uri);
+              controller.enqueue(encoder.encode(JSON.stringify({ uri, progress })));
+            },
           })
-          .then((msg) => {
-            console.log('variation.done', msg);
-            controller.enqueue(encoder.encode(JSON.stringify(msg)));
-            completeCallback(req.headers, { ...msg, unionId });
+          .then((res) => {
+            console.log('variation.done', res);
+            controller.enqueue(encoder.encode(JSON.stringify(res)));
+            res && completeCallback(req.headers, { ...res, unionId });
             controller.close();
           })
           .catch((err: ResponseError) => {

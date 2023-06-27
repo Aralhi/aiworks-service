@@ -1,5 +1,6 @@
 import { Midjourney } from 'midjourney';
 import { ResponseError, completeCallback } from '../../../lib/MJ';
+import { UAndVPayload } from './typing';
 
 const client = new Midjourney({
   ServerId: <string>process.env.SERVER_ID,
@@ -14,21 +15,28 @@ export const config = {
 };
 
 export default async function handler(req: Request) {
-  const { content, index, msgId, msgHash, unionId } = await req.json();
+  const { content, index, msgId, msgHash, flags, unionId } = (await req.json()) as UAndVPayload;
   console.log('upscale.handler', content);
   const encoder = new TextEncoder();
   const readable = new ReadableStream({
     start(controller) {
       console.log('upscale.start', content);
       client
-        .Upscale(content, index, msgId, msgHash, (uri: string, progress: string) => {
-          console.log('upscale.loading', uri);
-          controller.enqueue(encoder.encode(JSON.stringify({ uri, progress })));
+        .Upscale({
+          content,
+          index,
+          msgId,
+          flags,
+          hash: msgHash,
+          loading: (uri: string, progress: string) => {
+            console.log('upscale.loading', uri);
+            controller.enqueue(encoder.encode(JSON.stringify({ uri, progress })));
+          },
         })
-        .then((msg) => {
-          console.log('upscale.done', msg);
-          controller.enqueue(encoder.encode(JSON.stringify(msg)));
-          completeCallback(req.headers, { ...msg, unionId });
+        .then((res) => {
+          console.log('upscale.done', res);
+          controller.enqueue(encoder.encode(JSON.stringify(res)));
+          res && completeCallback(req.headers, { ...res, unionId });
           controller.close();
         })
         .catch((err: ResponseError) => {

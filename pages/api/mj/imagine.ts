@@ -43,10 +43,12 @@ const handler = async (req: Request) => {
             console.log('imagine.loading', uri, progress, ...args);
             controller.enqueue(encoder.encode(JSON.stringify({ uri, progress })));
           })
-          .then((msg) => {
-            console.log('imagine.done', msg);
-            controller.enqueue(encoder.encode(JSON.stringify(msg)));
-            completeCallback(req.headers, { ...msg, unionId });
+          .then((res) => {
+            console.log('imagine.done', res);
+            controller.enqueue(encoder.encode(JSON.stringify(res)));
+            if (res) {
+              completeCallback(req.headers, { ...res, unionId });
+            }
             controller.close();
           })
           .catch((err: ResponseError) => {
